@@ -50,7 +50,7 @@ local function call_with_timeout(timeout, funk)
 	end)
 
 	if timed_out then
-		return false, 'request timed out after ' .. timeout
+		return false, 'request timed out after : ' .. timeout
 	end
 
 	return success, value
