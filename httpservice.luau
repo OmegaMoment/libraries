@@ -949,8 +949,8 @@ end
 
 -- only gonna comment dis cause yk TwT
 function http:RequestAsync(options, retry_amount)
-	assert(typeof(options) == 'table', 'Expected options table')
-	assert(typeof(options.Url) == 'string', 'Missing Url in options')
+	assert(typeof(options) == 'table', 'expected options table')
+	assert(typeof(options.Url) == 'string', 'missing URL in options')
 
 	retry_amount = typeof(retry_amount) == 'number' and retry_amount or 3
 
