@@ -256,14 +256,14 @@ puffman.decode = function(input)
 	local current_node = deserialized_tree
 	local bit_position = 7 -- start of the most significant bit TwT
 	local current_byte = string.byte(input, position)
-	local bite_count = string.byte(input, #input)
+	local bit_count = string.byte(input, #input)
 	local data_end = #input - 1 -- skips the count at the end
 	position += 1
 
 	-- as many of you already know, i can't stand while loops but i seriously need to use it here... TwT
 	while position <= #input do -- changed this to kill any potential inf loops TwT
 		if position > data_end then
-			if bit_position < bite_count then
+			if bit_position < bit_count then
 				break
 			end
 		end
