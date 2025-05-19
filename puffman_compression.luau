@@ -139,6 +139,7 @@ puffman.encode = function(input)
 
 	-- return the raw data :3
 	if estimated_data_size >= rawlen(input) then
+		data.compression_difference = #input - estimated_data_size
 		data.time_elapsed = os.clock() - data.start_time
 		return data
 	end
@@ -177,6 +178,7 @@ puffman.encode = function(input)
 	if bit_count > 0 then
 		byte = byte * (2 ^ (8 - bit_count))
 		packed_string ..= string.char(byte)
+		packed_string ..= string.char(8 - bit_count) -- literally needed to store the bitcount which i somehow forgot (im pissed >:c)
 	end
 
 	-- update the data :3
@@ -223,6 +225,7 @@ puffman.decode = function(input)
 	-- well, time for the main deal TwT
 	data.method = 'huffman'
 	local position = 2 -- again, to skip the tag :3
+	data.output = '' -- reset the output cause yk
 
 	-- we need the raw tree data to rebuild the string properly
 	local function deserialize_tree()
@@ -253,12 +256,20 @@ puffman.decode = function(input)
 	local current_node = deserialized_tree
 	local bit_position = 7 -- start of the most significant bit TwT
 	local current_byte = string.byte(input, position)
+	local bite_count = string.byte(input, #input)
+	local data_end = #input - 1 -- skips the count at the end
 	position += 1
 
 	-- as many of you already know, i can't stand while loops but i seriously need to use it here... TwT
-	while true do
+	while position <= #input do -- changed this to kill any potential inf loops TwT
+		if position > data_end then
+			if bit_position < bite_count then
+				break
+			end
+		end
+
 		local bit = bit32.band(bit32.rshift(current_byte, bit_position), 1) -- get the next bit
-		bit_position = bit_position - 1
+		bit_position += -1
 
 		-- we need to navigate trough the tree we have
 		current_node = (bit == 0) and current_node.left or current_node.right
@@ -266,12 +277,12 @@ puffman.decode = function(input)
 		-- basically build the output :pensive:
 		if current_node.character then
 			data.output ..= current_node.character
-			current_node = deserialize_tree
+			current_node = deserialized_tree
 		end
 
 		-- check if we need another byte :3
 		if bit_position < 0 then
-			if position > #input then
+			if position > data_end then
 				-- free, at last.
 				break
 			end
