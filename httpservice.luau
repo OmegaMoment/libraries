@@ -29,32 +29,25 @@ end
 local function call_with_timeout(timeout, funk)
 	assert(typeof(funk) == 'function', 'invalid function')
 	timeout = typeof(timeout) == 'number' and timeout or 3
-
-	local thread = coroutine.create(function()
-		return pcall(funk)
+	
+	local completed = false
+	local success, result
+	
+	task.spawn(function()
+		success, result = pcall(funk)
+		completed = true
 	end)
-
-	local resumed = false
-	local pcall_success, result
-
-	task.defer(function()
-		resumed, pcall_success, result = coroutine.resume(thread)
-	end)
-
+	
 	local start_time = tick()
-	while not resumed and tick() - start_time < timeout do
+	while not completed and tick() - start_time < timeout do
 		task.wait()
 	end
-
-	if not resumed then
+	
+	if not completed then
 		return false, 'request timed out after: ' .. timeout
 	end
-
-	if not pcall_success then
-		return false, result
-	end
-
-	return true, result
+	
+	return success, result
 end
 
 -- conversions (data -> table, table -> data) TwT
